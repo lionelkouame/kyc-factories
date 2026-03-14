@@ -1,0 +1,23 @@
+# OpenAPI JSON spec — GET /api/doc.json
+app_nelmio_api_doc_json:
+    path: /api/doc.json
+    methods: [GET]
+    defaults:
+        _controller: nelmio_api_doc.controller.documentation
+        area: default
+
+# OpenAPI YAML spec — GET /api/doc.yaml
+app_nelmio_api_doc_yaml:
+    path: /api/doc.yaml
+    methods: [GET]
+    defaults:
+        _controller: nelmio_api_doc.controller.yaml_documentation
+        area: default
+
+# Swagger UI — GET /api/doc
+app_nelmio_api_doc_swagger_ui:
+    path: /api/doc
+    methods: [GET]
+    defaults:
+        _controller: nelmio_api_doc.controller.swagger_ui
+        area: default

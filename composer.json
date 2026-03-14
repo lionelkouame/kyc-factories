@@ -10,6 +10,7 @@
         "doctrine/doctrine-bundle": "^3.2",
         "doctrine/doctrine-migrations-bundle": "^4.0",
         "doctrine/orm": "^3.6",
+        "nelmio/api-doc-bundle": "^5.9",
         "symfony/console": "8.0.*",
         "symfony/dotenv": "8.0.*",
         "symfony/flex": "^2",
@@ -81,6 +82,7 @@
         "phpstan/phpstan-doctrine": "*",
         "phpstan/phpstan-symfony": "*",
         "phpunit/phpunit": "*",
+        "symfony/browser-kit": "8.0.*",
         "symfony/phpunit-bridge": "*"
     }
 }

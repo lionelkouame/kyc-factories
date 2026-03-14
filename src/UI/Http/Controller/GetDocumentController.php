@@ -8,6 +8,7 @@ use App\Application\Repository\KycRequestRepositoryPort;
 use App\Domain\KycRequest\Exception\KycRequestNotFoundException;
 use App\Domain\KycRequest\Port\DocumentStoragePort;
 use App\Domain\KycRequest\ValueObject\KycRequestId;
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -24,6 +25,19 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  *   - X-Content-Type-Options: nosniff (protège contre le MIME sniffing)
  * Aucun contenu du fichier n'est journalisé.
  */
+#[OA\Tag(name: 'Documents')]
+#[OA\Get(
+    path: '/api/kyc/{id}/document',
+    summary: 'Télécharger le document d\'identité (accès auditeur)',
+    security: [['basicAuth' => []]],
+    parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, description: 'UUID de la demande KYC', schema: new OA\Schema(type: 'string', format: 'uuid'))],
+    responses: [
+        new OA\Response(response: 200, description: 'Fichier binaire (stream)', content: new OA\MediaType(mediaType: 'application/octet-stream', schema: new OA\Schema(type: 'string', format: 'binary'))),
+        new OA\Response(response: 401, description: 'Non authentifié'),
+        new OA\Response(response: 403, description: 'Rôle insuffisant (ROLE_KYC_AUDITOR requis)'),
+        new OA\Response(response: 404, description: 'Document introuvable ou purgé'),
+    ],
+)]
 #[Route('/api/kyc/{id}/document', methods: ['GET'])]
 #[IsGranted('ROLE_KYC_AUDITOR')]
 final class GetDocumentController

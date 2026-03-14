@@ -7,11 +7,33 @@ namespace App\UI\Http\Controller;
 use App\Application\Command\RecordManualReviewDecision;
 use App\Application\Port\CommandBusPort;
 use App\Domain\KycRequest\Exception\KycDomainException;
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+#[OA\Tag(name: 'Révision manuelle')]
+#[OA\Post(
+    path: '/api/kyc/{id}/manual-review/decision',
+    summary: 'Saisir la décision de révision manuelle',
+    parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, description: 'UUID de la demande KYC', schema: new OA\Schema(type: 'string', format: 'uuid'))],
+    requestBody: new OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['reviewerId', 'decision', 'justification'],
+            properties: [
+                new OA\Property(property: 'reviewerId', type: 'string', example: 'reviewer-007'),
+                new OA\Property(property: 'decision', type: 'string', enum: ['approved', 'rejected'], example: 'approved'),
+                new OA\Property(property: 'justification', type: 'string', example: 'Document authentifié avec succès'),
+            ],
+        ),
+    ),
+    responses: [
+        new OA\Response(response: 204, description: 'Décision enregistrée'),
+        new OA\Response(response: 422, description: 'Erreur métier'),
+    ],
+)]
 #[Route('/api/kyc/{id}/manual-review/decision', methods: ['POST'])]
 final class RecordManualReviewDecisionController
 {

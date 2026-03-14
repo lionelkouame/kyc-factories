@@ -8,11 +8,37 @@ use App\Application\Command\SubmitKycRequest;
 use App\Application\Port\CommandBusPort;
 use App\Domain\KycRequest\Exception\KycDomainException;
 use App\Domain\KycRequest\ValueObject\KycRequestId;
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+#[OA\Tag(name: 'Pipeline KYC')]
+#[OA\Post(
+    path: '/api/kyc',
+    summary: 'Soumettre une nouvelle demande KYC',
+    requestBody: new OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['applicantId', 'documentType'],
+            properties: [
+                new OA\Property(property: 'applicantId', type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000'),
+                new OA\Property(property: 'documentType', type: 'string', enum: ['cni', 'passeport', 'titre_de_sejour'], example: 'passeport'),
+            ],
+        ),
+    ),
+    responses: [
+        new OA\Response(
+            response: 201,
+            description: 'Demande créée',
+            content: new OA\JsonContent(
+                properties: [new OA\Property(property: 'kycRequestId', type: 'string', format: 'uuid')],
+            ),
+        ),
+        new OA\Response(response: 422, description: 'Erreur métier (domaine)'),
+    ],
+)]
 #[Route('/api/kyc', methods: ['POST'])]
 final class SubmitKycRequestController
 {

@@ -7,6 +7,7 @@ namespace App\UI\Http\Controller;
 use App\Application\Command\UploadDocument;
 use App\Application\Port\CommandBusPort;
 use App\Domain\KycRequest\Exception\KycDomainException;
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,6 +26,31 @@ use Symfony\Component\Routing\Attribute\Route;
  *   "sha256Hash": "<hex>"
  * }
  */
+#[OA\Tag(name: 'Pipeline KYC')]
+#[OA\Post(
+    path: '/api/kyc/{id}/document',
+    summary: 'Uploader le document d\'identité (encodé en base64)',
+    parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, description: 'UUID de la demande KYC', schema: new OA\Schema(type: 'string', format: 'uuid'))],
+    requestBody: new OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['fileContent', 'mimeType', 'sizeBytes', 'dpi', 'blurVariance', 'sha256Hash'],
+            properties: [
+                new OA\Property(property: 'fileContent', type: 'string', format: 'byte', description: 'Contenu du fichier encodé en base64'),
+                new OA\Property(property: 'mimeType', type: 'string', example: 'image/jpeg', enum: ['image/jpeg', 'image/png', 'application/pdf']),
+                new OA\Property(property: 'sizeBytes', type: 'integer', example: 512000),
+                new OA\Property(property: 'dpi', type: 'number', format: 'float', example: 300.0),
+                new OA\Property(property: 'blurVariance', type: 'number', format: 'float', example: 150.0),
+                new OA\Property(property: 'sha256Hash', type: 'string', example: 'a3f1...'),
+            ],
+        ),
+    ),
+    responses: [
+        new OA\Response(response: 204, description: 'Document accepté'),
+        new OA\Response(response: 400, description: 'fileContent non valide (base64 attendu)'),
+        new OA\Response(response: 422, description: 'Erreur métier (qualité insuffisante, mauvais état…)'),
+    ],
+)]
 #[Route('/api/kyc/{id}/document', methods: ['POST'])]
 final class UploadDocumentController
 {
