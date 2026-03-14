@@ -39,4 +39,12 @@ interface EventStorePort
      * @return DomainEvent[]
      */
     public function loadFrom(string $aggregateId, int $fromVersion): array;
+
+    /**
+     * Retourne tous les événements de tous les agrégats, dans l'ordre chronologique.
+     * Utilisé exclusivement pour la reconstruction de projections (UC-04).
+     *
+     * @return iterable<DomainEvent>
+     */
+    public function loadAll(): iterable;
 }
