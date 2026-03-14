@@ -45,4 +45,18 @@ final class OcrExtractionSucceeded extends DomainEvent
             'confidenceScore' => $this->confidenceScore->toFloat(),
         ];
     }
+
+    public static function fromPayload(array $payload): static
+    {
+        return new static(
+            kycRequestId: KycRequestId::fromString(self::str($payload, 'kycRequestId')),
+            lastName: self::strOrNull($payload, 'lastName'),
+            firstName: self::strOrNull($payload, 'firstName'),
+            birthDate: self::strOrNull($payload, 'birthDate'),
+            expiryDate: self::strOrNull($payload, 'expiryDate'),
+            documentId: self::strOrNull($payload, 'documentId'),
+            mrz: self::strOrNull($payload, 'mrz'),
+            confidenceScore: OcrConfidenceScore::fromFloat(self::float($payload, 'confidenceScore')),
+        );
+    }
 }

@@ -34,4 +34,13 @@ final class ManualReviewRequested extends DomainEvent
             'reason' => $this->reason,
         ];
     }
+
+    public static function fromPayload(array $payload): static
+    {
+        return new static(
+            kycRequestId: KycRequestId::fromString(self::str($payload, 'kycRequestId')),
+            requestedBy: self::str($payload, 'requestedBy'),
+            reason: self::str($payload, 'reason'),
+        );
+    }
 }

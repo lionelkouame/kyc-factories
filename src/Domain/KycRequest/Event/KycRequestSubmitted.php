@@ -36,4 +36,13 @@ final class KycRequestSubmitted extends DomainEvent
             'documentType' => $this->documentType->value,
         ];
     }
+
+    public static function fromPayload(array $payload): static
+    {
+        return new static(
+            KycRequestId::fromString(self::str($payload, 'kycRequestId')),
+            ApplicantId::fromString(self::str($payload, 'applicantId')),
+            DocumentType::from(self::str($payload, 'documentType')),
+        );
+    }
 }

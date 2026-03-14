@@ -39,4 +39,18 @@ final class KycRejected extends DomainEvent
             ),
         ];
     }
+
+    public static function fromPayload(array $payload): static
+    {
+        /** @var array<array{code: string, message: string}> $reasons */
+        $reasons = self::arr($payload, 'failureReasons');
+
+        return new static(
+            kycRequestId: KycRequestId::fromString(self::str($payload, 'kycRequestId')),
+            failureReasons: array_map(
+                static fn (array $r) => new FailureReason((string) $r['code'], (string) $r['message']),
+                $reasons,
+            ),
+        );
+    }
 }

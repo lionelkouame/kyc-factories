@@ -102,13 +102,14 @@ final class DomainEventTest extends TestCase
             sha256Hash: hash('sha256', 'fake-content'),
         );
 
+        /** @var array<string, mixed> $payload */
         $payload = $event->getPayload();
 
         self::assertSame('image/jpeg', $payload['mimeType']);
         self::assertSame(1_024_000, $payload['sizeBytes']);
         self::assertSame(300.0, $payload['dpi']);
         self::assertSame(150.5, $payload['blurVariance']);
-        self::assertSame(64, \strlen($payload['sha256Hash']));
+        self::assertSame(64, \strlen(\is_string($payload['sha256Hash']) ? $payload['sha256Hash'] : ''));
         self::assertSame('kyc_request.document_uploaded', $event->getEventType());
     }
 
@@ -212,11 +213,14 @@ final class DomainEventTest extends TestCase
             ],
         );
 
+        /** @var array<string, mixed> $payload */
         $payload = $event->getPayload();
+        /** @var array<array{code: string, message: string}> $reasons */
+        $reasons = $payload['failureReasons'];
 
-        self::assertCount(2, $payload['failureReasons']);
-        self::assertSame('E_VAL_MRZ', $payload['failureReasons'][0]['code']);
-        self::assertSame('E_VAL_NAME', $payload['failureReasons'][1]['code']);
+        self::assertCount(2, $reasons);
+        self::assertSame('E_VAL_MRZ', $reasons[0]['code']);
+        self::assertSame('E_VAL_NAME', $reasons[1]['code']);
         self::assertSame('kyc_request.rejected', $event->getEventType());
     }
 
