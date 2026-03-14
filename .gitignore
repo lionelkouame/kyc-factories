@@ -9,3 +9,4 @@ scripts/create-github-issues.sh
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
+.php-cs-fixer.cache
