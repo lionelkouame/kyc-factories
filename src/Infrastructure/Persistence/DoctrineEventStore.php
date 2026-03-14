@@ -81,4 +81,22 @@ final class DoctrineEventStore implements EventStorePort
 
         return array_map($this->serializer->deserialize(...), $rows);
     }
+
+    /**
+     * Retourne tous les événements de l'ensemble des agrégats dans l'ordre chronologique.
+     * Utilisé exclusivement pour la reconstruction de projections (UC-04).
+     *
+     * @return iterable<DomainEvent>
+     */
+    public function loadAll(): iterable
+    {
+        /** @var array<array<string, mixed>> $rows */
+        $rows = $this->connection->fetchAllAssociative(
+            sprintf('SELECT * FROM %s ORDER BY occurred_at ASC, version ASC', self::TABLE),
+        );
+
+        foreach ($rows as $row) {
+            yield $this->serializer->deserialize($row);
+        }
+    }
 }
