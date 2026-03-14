@@ -38,6 +38,9 @@ services:
     App\Application\Projection\PendingManualReviewProjectorPort:
         class: App\Infrastructure\Projection\InMemoryPendingManualReviewProjector
 
+    App\Application\Projection\KycDecisionReportProjectorPort:
+        class: App\Infrastructure\Projection\InMemoryKycDecisionReportProjector
+
     App\Application\Port\CommandBusPort:
         class: App\Infrastructure\Bus\SymfonyMessengerCommandBus
 
