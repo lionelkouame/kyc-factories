@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\UI\Http\Controller;
 
 use App\Application\Command\RequestManualReview;
-use App\Application\Handler\RequestManualReviewHandler;
+use App\Application\Port\CommandBusPort;
 use App\Domain\KycRequest\Exception\KycDomainException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class RequestManualReviewController
 {
     public function __construct(
-        private readonly RequestManualReviewHandler $handler,
+        private readonly CommandBusPort $bus,
     ) {
     }
 
@@ -26,7 +26,7 @@ final class RequestManualReviewController
         $body = json_decode((string) $request->getContent(), true, 512, \JSON_THROW_ON_ERROR);
 
         try {
-            $this->handler->handle(new RequestManualReview(
+            $this->bus->dispatch(new RequestManualReview(
                 kycRequestId: $id,
                 requestedBy: $this->str($body, 'requestedBy'),
                 reason: $this->str($body, 'reason'),

@@ -10,8 +10,13 @@ framework:
             sync: 'sync://'
 
         routing:
-            # Route your messages to the transports
-            # 'App\Message\YourMessage': async
+            App\Application\Command\SubmitKycRequest: sync
+            App\Application\Command\UploadDocument: sync
+            App\Application\Command\ExtractOcr: sync
+            App\Application\Command\ValidateKyc: sync
+            App\Application\Command\RequestManualReview: sync
+            App\Application\Command\RecordManualReviewDecision: sync
+            App\Application\Command\RebuildProjection: sync
 
 # when@test:
 #    framework:

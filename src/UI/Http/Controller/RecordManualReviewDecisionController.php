@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\UI\Http\Controller;
 
 use App\Application\Command\RecordManualReviewDecision;
-use App\Application\Handler\RecordManualReviewDecisionHandler;
+use App\Application\Port\CommandBusPort;
 use App\Domain\KycRequest\Exception\KycDomainException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class RecordManualReviewDecisionController
 {
     public function __construct(
-        private readonly RecordManualReviewDecisionHandler $handler,
+        private readonly CommandBusPort $bus,
     ) {
     }
 
@@ -26,7 +26,7 @@ final class RecordManualReviewDecisionController
         $body = json_decode((string) $request->getContent(), true, 512, \JSON_THROW_ON_ERROR);
 
         try {
-            $this->handler->handle(new RecordManualReviewDecision(
+            $this->bus->dispatch(new RecordManualReviewDecision(
                 kycRequestId: $id,
                 reviewerId: $this->str($body, 'reviewerId'),
                 decision: $this->str($body, 'decision'),

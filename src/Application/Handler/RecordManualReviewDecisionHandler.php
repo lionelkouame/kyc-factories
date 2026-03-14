@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Handler;
 
+use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use App\Application\Command\RecordManualReviewDecision;
 use App\Application\Repository\KycRequestRepositoryPort;
 use App\Domain\KycRequest\Port\DomainEventPublisherPort;
@@ -17,6 +18,7 @@ final class RecordManualReviewDecisionHandler
     ) {
     }
 
+    #[AsMessageHandler]
     public function handle(RecordManualReviewDecision $command): void
     {
         $id = KycRequestId::fromString($command->kycRequestId);

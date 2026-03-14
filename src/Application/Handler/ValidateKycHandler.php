@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Handler;
 
+use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use App\Application\Command\ValidateKyc;
 use App\Application\Repository\KycRequestRepositoryPort;
 use App\Domain\KycRequest\Port\DomainEventPublisherPort;
@@ -17,6 +18,7 @@ final class ValidateKycHandler
     ) {
     }
 
+    #[AsMessageHandler]
     public function handle(ValidateKyc $command): void
     {
         $id = KycRequestId::fromString($command->kycRequestId);
