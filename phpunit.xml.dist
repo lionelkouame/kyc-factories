@@ -16,6 +16,7 @@
             <directory>tests/Contract</directory>
             <exclude>tests/Contract/EventStore/EventStoreContractTest.php</exclude>
             <exclude>tests/Contract/DocumentStorage/DocumentStorageContractTest.php</exclude>
+            <exclude>tests/Contract/Ocr/OcrPortContractTest.php</exclude>
         </testsuite>
     </testsuites>
 
