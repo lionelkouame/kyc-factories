@@ -7,8 +7,8 @@ security:
             memory:
                 users:
                     kyc_auditor:
-                        # Production: override KYC_AUDITOR_PASSWORD_HASH with a proper bcrypt hash.
-                        password: '%env(default:KYC_AUDITOR_PASSWORD_HASH_DEFAULT:KYC_AUDITOR_PASSWORD_HASH)%'
+                        # Production: set KYC_AUDITOR_PASSWORD_HASH to a proper bcrypt hash.
+                        password: '%env(KYC_AUDITOR_PASSWORD_HASH)%'
                         roles: ['ROLE_KYC_AUDITOR']
 
     firewalls:
