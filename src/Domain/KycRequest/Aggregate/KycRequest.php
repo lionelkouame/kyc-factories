@@ -245,6 +245,33 @@ final class KycRequest extends AggregateRoot
         $this->record(new ManualReviewRequested($this->id, $requestedBy, $reason));
     }
 
+    /**
+     * Purge RGPD : supprime la référence au fichier brut après décision finale.
+     *
+     * Préconditions :
+     * - La demande doit être dans un état terminal (approved ou rejected)
+     * - Le document ne doit pas déjà avoir été purgé
+     *
+     * @throws InvalidTransitionException si la demande n'est pas en état terminal ou déjà purgée
+     */
+    public function purgeDocument(): void
+    {
+        $terminals = [KycStatus::Approved, KycStatus::Rejected];
+
+        if (!\in_array($this->status, $terminals, true)) {
+            throw new InvalidTransitionException(\sprintf(
+                'Cannot purge document: status is "%s". Expected approved or rejected.',
+                $this->status->value,
+            ));
+        }
+
+        if ($this->documentPurged) {
+            throw new InvalidTransitionException('Document has already been purged for this KycRequest.');
+        }
+
+        $this->record(new DocumentPurged($this->id));
+    }
+
     public function recordManualReviewDecision(string $reviewerId, string $decision, string $justification): void
     {
         if (KycStatus::UnderManualReview !== $this->status) {
