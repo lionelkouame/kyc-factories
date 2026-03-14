@@ -37,14 +37,12 @@ install: ## Installe les dépendances Composer
 ## Base de données
 ## ─────────────────────────────────────────────────────────────────────────────
 
-db: ## Crée la base et joue les migrations
-	$(SYMFONY) doctrine:database:create --if-not-exists
-	$(SYMFONY) doctrine:migrations:migrate --no-interaction
+db: ## Initialise la base et joue les migrations (SQLite : fichier créé automatiquement)
+	$(SYMFONY) doctrine:migrations:migrate --no-interaction --allow-no-migration
 
-db-reset: ## Recrée la base from scratch (drop + create + migrate)
+db-reset: ## Recrée la base from scratch (drop + migrate)
 	$(SYMFONY) doctrine:database:drop --force --if-exists
-	$(SYMFONY) doctrine:database:create
-	$(SYMFONY) doctrine:migrations:migrate --no-interaction
+	$(SYMFONY) doctrine:migrations:migrate --no-interaction --allow-no-migration
 
 ## ─────────────────────────────────────────────────────────────────────────────
 ## Qualité de code
