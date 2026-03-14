@@ -72,5 +72,11 @@
             "allow-contrib": false,
             "require": "8.0.*"
         }
+    },
+    "require-dev": {
+        "phpstan/extension-installer": "*",
+        "phpstan/phpstan": "*",
+        "phpstan/phpstan-doctrine": "*",
+        "phpstan/phpstan-symfony": "*"
     }
 }
