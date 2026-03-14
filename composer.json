@@ -78,6 +78,8 @@
         "phpstan/extension-installer": "*",
         "phpstan/phpstan": "*",
         "phpstan/phpstan-doctrine": "*",
-        "phpstan/phpstan-symfony": "*"
+        "phpstan/phpstan-symfony": "*",
+        "phpunit/phpunit": "*",
+        "symfony/phpunit-bridge": "*"
     }
 }
