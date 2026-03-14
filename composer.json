@@ -18,7 +18,8 @@
         "symfony/runtime": "8.0.*",
         "symfony/security-bundle": "8.0.*",
         "symfony/uid": "8.0.*",
-        "symfony/yaml": "8.0.*"
+        "symfony/yaml": "8.0.*",
+        "thiagoalessio/tesseract_ocr": "^2.13"
     },
     "config": {
         "allow-plugins": {
