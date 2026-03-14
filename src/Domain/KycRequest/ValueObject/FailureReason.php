@@ -12,11 +12,11 @@ final readonly class FailureReason
         public string $code,
         public string $message,
     ) {
-        if (trim($this->code) === '') {
+        if ('' === trim($this->code)) {
             throw new InvalidValueObjectException('FailureReason code cannot be empty.');
         }
 
-        if (trim($this->message) === '') {
+        if ('' === trim($this->message)) {
             throw new InvalidValueObjectException('FailureReason message cannot be empty.');
         }
     }

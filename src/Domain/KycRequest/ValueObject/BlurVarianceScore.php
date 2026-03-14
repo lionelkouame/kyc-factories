@@ -8,14 +8,14 @@ use App\Domain\KycRequest\Exception\InvalidValueObjectException;
 
 final readonly class BlurVarianceScore
 {
-    private function __construct(private float $value) {}
+    private function __construct(private float $value)
+    {
+    }
 
     public static function fromFloat(float $value): self
     {
         if ($value < 0.0) {
-            throw new InvalidValueObjectException(
-                sprintf('BlurVarianceScore must be >= 0, got %.2f.', $value)
-            );
+            throw new InvalidValueObjectException(\sprintf('BlurVarianceScore must be >= 0, got %.2f.', $value));
         }
 
         return new self($value);

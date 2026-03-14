@@ -8,14 +8,14 @@ use App\Domain\KycRequest\Exception\InvalidValueObjectException;
 
 final readonly class OcrConfidenceScore
 {
-    private function __construct(private float $value) {}
+    private function __construct(private float $value)
+    {
+    }
 
     public static function fromFloat(float $value): self
     {
         if ($value < 0.0 || $value > 100.0) {
-            throw new InvalidValueObjectException(
-                sprintf('OcrConfidenceScore must be between 0 and 100, got %.2f.', $value)
-            );
+            throw new InvalidValueObjectException(\sprintf('OcrConfidenceScore must be between 0 and 100, got %.2f.', $value));
         }
 
         return new self($value);

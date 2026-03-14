@@ -24,7 +24,9 @@ final class KycRequest extends AggregateRoot
     private DocumentType $documentType;
     private KycStatus $status;
 
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     // ──────────────────────────────────────────────────────────────────────────
     // Commandes (factory + transitions)
@@ -48,7 +50,7 @@ final class KycRequest extends AggregateRoot
      */
     public static function reconstitute(array $events): self
     {
-        if ($events === []) {
+        if ([] === $events) {
             throw new \LogicException('Cannot reconstitute KycRequest from an empty event list.');
         }
 
@@ -64,40 +66,22 @@ final class KycRequest extends AggregateRoot
 
     public function assertCanUploadDocument(): void
     {
-        if ($this->status !== KycStatus::Submitted) {
-            throw new InvalidTransitionException(
-                sprintf(
-                    'Cannot upload document: current status is "%s", expected "%s".',
-                    $this->status->value,
-                    KycStatus::Submitted->value,
-                )
-            );
+        if (KycStatus::Submitted !== $this->status) {
+            throw new InvalidTransitionException(\sprintf('Cannot upload document: current status is "%s", expected "%s".', $this->status->value, KycStatus::Submitted->value));
         }
     }
 
     public function assertCanRunOcr(): void
     {
-        if ($this->status !== KycStatus::DocumentUploaded) {
-            throw new InvalidTransitionException(
-                sprintf(
-                    'Cannot run OCR: current status is "%s", expected "%s".',
-                    $this->status->value,
-                    KycStatus::DocumentUploaded->value,
-                )
-            );
+        if (KycStatus::DocumentUploaded !== $this->status) {
+            throw new InvalidTransitionException(\sprintf('Cannot run OCR: current status is "%s", expected "%s".', $this->status->value, KycStatus::DocumentUploaded->value));
         }
     }
 
     public function assertCanValidate(): void
     {
-        if ($this->status !== KycStatus::OcrCompleted) {
-            throw new InvalidTransitionException(
-                sprintf(
-                    'Cannot validate: current status is "%s", expected "%s".',
-                    $this->status->value,
-                    KycStatus::OcrCompleted->value,
-                )
-            );
+        if (KycStatus::OcrCompleted !== $this->status) {
+            throw new InvalidTransitionException(\sprintf('Cannot validate: current status is "%s", expected "%s".', $this->status->value, KycStatus::OcrCompleted->value));
         }
     }
 
@@ -105,14 +89,8 @@ final class KycRequest extends AggregateRoot
     {
         $allowed = [KycStatus::Rejected, KycStatus::OcrFailed];
 
-        if (!in_array($this->status, $allowed, true)) {
-            throw new InvalidTransitionException(
-                sprintf(
-                    'Cannot request manual review from status "%s". Allowed: %s.',
-                    $this->status->value,
-                    implode(', ', array_map(fn(KycStatus $s) => $s->value, $allowed)),
-                )
-            );
+        if (!\in_array($this->status, $allowed, true)) {
+            throw new InvalidTransitionException(\sprintf('Cannot request manual review from status "%s". Allowed: %s.', $this->status->value, implode(', ', array_map(static fn (KycStatus $s) => $s->value, $allowed))));
         }
     }
 
@@ -120,13 +98,8 @@ final class KycRequest extends AggregateRoot
     {
         $finals = [KycStatus::Approved, KycStatus::Rejected];
 
-        if (in_array($this->status, $finals, true)) {
-            throw new InvalidTransitionException(
-                sprintf(
-                    'KycRequest is in final state "%s" and cannot be modified without manual review.',
-                    $this->status->value,
-                )
-            );
+        if (\in_array($this->status, $finals, true)) {
+            throw new InvalidTransitionException(\sprintf('KycRequest is in final state "%s" and cannot be modified without manual review.', $this->status->value));
         }
     }
 

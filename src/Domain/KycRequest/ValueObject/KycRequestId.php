@@ -9,7 +9,9 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class KycRequestId
 {
-    private function __construct(private string $value) {}
+    private function __construct(private string $value)
+    {
+    }
 
     public static function generate(): self
     {
@@ -19,9 +21,7 @@ final readonly class KycRequestId
     public static function fromString(string $value): self
     {
         if (!Uuid::isValid($value)) {
-            throw new InvalidValueObjectException(
-                sprintf('Invalid KycRequestId: "%s" is not a valid UUID.', $value)
-            );
+            throw new InvalidValueObjectException(\sprintf('Invalid KycRequestId: "%s" is not a valid UUID.', $value));
         }
 
         return new self($value);

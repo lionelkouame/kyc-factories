@@ -8,17 +8,14 @@ use App\Domain\KycRequest\Exception\InvalidValueObjectException;
 
 final readonly class DocumentId
 {
-    private function __construct(private string $value) {}
+    private function __construct(private string $value)
+    {
+    }
 
     public static function fromString(string $value): self
     {
         if (!preg_match('/^[A-Z0-9]{9,12}$/', $value)) {
-            throw new InvalidValueObjectException(
-                sprintf(
-                    'Invalid DocumentId: "%s" must be 9–12 uppercase alphanumeric characters.',
-                    $value
-                )
-            );
+            throw new InvalidValueObjectException(\sprintf('Invalid DocumentId: "%s" must be 9–12 uppercase alphanumeric characters.', $value));
         }
 
         return new self($value);

@@ -15,16 +15,16 @@ use App\Domain\KycRequest\Exception\InvalidValueObjectException;
  */
 final readonly class ExpiryDate
 {
-    private function __construct(private \DateTimeImmutable $value) {}
+    private function __construct(private \DateTimeImmutable $value)
+    {
+    }
 
     public static function fromString(string $date): self
     {
         $parsed = \DateTimeImmutable::createFromFormat('Y-m-d', $date);
 
-        if ($parsed === false) {
-            throw new InvalidValueObjectException(
-                sprintf('Invalid ExpiryDate format: "%s". Expected Y-m-d.', $date)
-            );
+        if (false === $parsed) {
+            throw new InvalidValueObjectException(\sprintf('Invalid ExpiryDate format: "%s". Expected Y-m-d.', $date));
         }
 
         return new self($parsed->setTime(23, 59, 59));

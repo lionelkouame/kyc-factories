@@ -15,24 +15,22 @@ use App\Domain\KycRequest\Exception\InvalidValueObjectException;
  */
 final readonly class BirthDate
 {
-    private function __construct(private \DateTimeImmutable $value) {}
+    private function __construct(private \DateTimeImmutable $value)
+    {
+    }
 
     public static function fromString(string $date): self
     {
         $parsed = \DateTimeImmutable::createFromFormat('Y-m-d', $date);
 
-        if ($parsed === false) {
-            throw new InvalidValueObjectException(
-                sprintf('Invalid BirthDate format: "%s". Expected Y-m-d.', $date)
-            );
+        if (false === $parsed) {
+            throw new InvalidValueObjectException(\sprintf('Invalid BirthDate format: "%s". Expected Y-m-d.', $date));
         }
 
         $normalized = $parsed->setTime(0, 0, 0);
 
         if ($normalized >= new \DateTimeImmutable('today')) {
-            throw new InvalidValueObjectException(
-                'BirthDate must be in the past.'
-            );
+            throw new InvalidValueObjectException('BirthDate must be in the past.');
         }
 
         return new self($normalized);

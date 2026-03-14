@@ -14,7 +14,7 @@ abstract class AggregateRoot
 
     protected function record(DomainEvent $event): void
     {
-        $this->version++;
+        ++$this->version;
         $event->version = $this->version;
         $this->applyEvent($event);
         $this->recordedEvents[] = $event;
@@ -23,7 +23,7 @@ abstract class AggregateRoot
     private function applyEvent(DomainEvent $event): void
     {
         $parts = explode('\\', $event::class);
-        $method = 'apply' . end($parts);
+        $method = 'apply'.end($parts);
 
         if (method_exists($this, $method)) {
             $this->$method($event);

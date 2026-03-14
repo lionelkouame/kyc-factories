@@ -9,14 +9,14 @@ use Symfony\Component\Uid\Uuid;
 
 final readonly class ApplicantId
 {
-    private function __construct(private string $value) {}
+    private function __construct(private string $value)
+    {
+    }
 
     public static function fromString(string $value): self
     {
         if (!Uuid::isValid($value)) {
-            throw new InvalidValueObjectException(
-                sprintf('Invalid ApplicantId: "%s" is not a valid UUID.', $value)
-            );
+            throw new InvalidValueObjectException(\sprintf('Invalid ApplicantId: "%s" is not a valid UUID.', $value));
         }
 
         return new self($value);
