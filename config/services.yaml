@@ -19,5 +19,24 @@ services:
     App\:
         resource: '../src/'
 
+    # Bindings ports → adaptateurs concrets
+    App\Domain\KycRequest\Port\DocumentStoragePort:
+        class: App\Infrastructure\Storage\InMemoryDocumentStorage
+
+    App\Domain\KycRequest\Port\DomainEventPublisherPort:
+        class: App\Infrastructure\Messaging\InMemoryDomainEventPublisher
+
+    App\Domain\KycRequest\Port\OcrPort:
+        class: App\Infrastructure\Ocr\StubOcrAdapter
+
+    App\Application\Projection\KycRequestStatusProjectorPort:
+        class: App\Infrastructure\Projection\InMemoryKycRequestStatusProjector
+
+    App\Application\Projection\KycAuditTrailProjectorPort:
+        class: App\Infrastructure\Projection\InMemoryKycAuditTrailProjector
+
+    App\Application\Projection\PendingManualReviewProjectorPort:
+        class: App\Infrastructure\Projection\InMemoryPendingManualReviewProjector
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
