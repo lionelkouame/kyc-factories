@@ -36,4 +36,14 @@ final class ManualReviewDecisionRecorded extends DomainEvent
             'justification' => $this->justification,
         ];
     }
+
+    public static function fromPayload(array $payload): static
+    {
+        return new static(
+            kycRequestId: KycRequestId::fromString(self::str($payload, 'kycRequestId')),
+            reviewerId: self::str($payload, 'reviewerId'),
+            decision: self::str($payload, 'decision'),
+            justification: self::str($payload, 'justification'),
+        );
+    }
 }

@@ -43,4 +43,17 @@ final class DocumentUploaded extends DomainEvent
             'sha256Hash' => $this->sha256Hash,
         ];
     }
+
+    public static function fromPayload(array $payload): static
+    {
+        return new static(
+            kycRequestId: KycRequestId::fromString(self::str($payload, 'kycRequestId')),
+            storagePath: self::str($payload, 'storagePath'),
+            mimeType: self::str($payload, 'mimeType'),
+            sizeBytes: self::int($payload, 'sizeBytes'),
+            dpi: self::float($payload, 'dpi'),
+            blurVariance: BlurVarianceScore::fromFloat(self::float($payload, 'blurVariance')),
+            sha256Hash: self::str($payload, 'sha256Hash'),
+        );
+    }
 }

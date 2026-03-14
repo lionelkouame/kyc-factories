@@ -119,6 +119,11 @@ final class KycRequest extends AggregateRoot
     // Accesseurs (lecture seule)
     // ──────────────────────────────────────────────────────────────────────────
 
+    public function getAggregateId(): string
+    {
+        return $this->id->toString();
+    }
+
     public function getId(): KycRequestId
     {
         return $this->id;

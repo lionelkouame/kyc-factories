@@ -30,4 +30,9 @@ final class KycApproved extends DomainEvent
             'kycRequestId' => $this->kycRequestId->toString(),
         ];
     }
+
+    public static function fromPayload(array $payload): static
+    {
+        return new static(KycRequestId::fromString(self::str($payload, 'kycRequestId')));
+    }
 }

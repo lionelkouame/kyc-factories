@@ -36,4 +36,13 @@ final class OcrExtractionFailed extends DomainEvent
             'confidenceScore' => $this->confidenceScore,
         ];
     }
+
+    public static function fromPayload(array $payload): static
+    {
+        return new static(
+            kycRequestId: KycRequestId::fromString(self::str($payload, 'kycRequestId')),
+            failureReason: new FailureReason(self::str($payload, 'failureCode'), self::str($payload, 'failureMessage')),
+            confidenceScore: self::floatOrNull($payload, 'confidenceScore'),
+        );
+    }
 }
