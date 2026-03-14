@@ -4,11 +4,21 @@ declare(strict_types=1);
 
 namespace App\Domain\KycRequest\Aggregate;
 
+use App\Domain\KycRequest\Event\DocumentPurged;
+use App\Domain\KycRequest\Event\DocumentRejectedOnUpload;
+use App\Domain\KycRequest\Event\DocumentUploaded;
 use App\Domain\KycRequest\Event\DomainEvent;
+use App\Domain\KycRequest\Event\KycApproved;
+use App\Domain\KycRequest\Event\KycRejected;
 use App\Domain\KycRequest\Event\KycRequestSubmitted;
+use App\Domain\KycRequest\Event\ManualReviewDecisionRecorded;
+use App\Domain\KycRequest\Event\ManualReviewRequested;
+use App\Domain\KycRequest\Event\OcrExtractionFailed;
+use App\Domain\KycRequest\Event\OcrExtractionSucceeded;
 use App\Domain\KycRequest\Exception\InvalidTransitionException;
 use App\Domain\KycRequest\ValueObject\ApplicantId;
 use App\Domain\KycRequest\ValueObject\DocumentType;
+use App\Domain\KycRequest\ValueObject\FailureReason;
 use App\Domain\KycRequest\ValueObject\KycRequestId;
 
 /**
@@ -23,6 +33,23 @@ final class KycRequest extends AggregateRoot
     private ApplicantId $applicantId;
     private DocumentType $documentType;
     private KycStatus $status;
+
+    // État document
+    private ?string $storagePath = null;
+    private ?string $mimeType = null;
+    private ?string $sha256Hash = null;
+    private bool $documentPurged = false;
+
+    // État OCR
+    private ?string $lastName = null;
+    private ?string $firstName = null;
+    private ?string $birthDate = null;
+    private ?string $expiryDate = null;
+    private ?string $documentId = null;
+    private ?string $mrz = null;
+
+    /** @var FailureReason[] */
+    private array $failureReasons = [];
 
     private function __construct()
     {
@@ -115,6 +142,68 @@ final class KycRequest extends AggregateRoot
         $this->status = KycStatus::Submitted;
     }
 
+    protected function applyDocumentUploaded(DocumentUploaded $event): void
+    {
+        $this->storagePath = $event->storagePath;
+        $this->mimeType = $event->mimeType;
+        $this->sha256Hash = $event->sha256Hash;
+        $this->status = KycStatus::DocumentUploaded;
+    }
+
+    protected function applyDocumentRejectedOnUpload(DocumentRejectedOnUpload $event): void
+    {
+        $this->failureReasons = [$event->failureReason];
+        $this->status = KycStatus::DocumentRejected;
+    }
+
+    protected function applyOcrExtractionSucceeded(OcrExtractionSucceeded $event): void
+    {
+        $this->lastName = $event->lastName;
+        $this->firstName = $event->firstName;
+        $this->birthDate = $event->birthDate;
+        $this->expiryDate = $event->expiryDate;
+        $this->documentId = $event->documentId;
+        $this->mrz = $event->mrz;
+        $this->status = KycStatus::OcrCompleted;
+    }
+
+    protected function applyOcrExtractionFailed(OcrExtractionFailed $event): void
+    {
+        $this->failureReasons = [$event->failureReason];
+        $this->status = KycStatus::OcrFailed;
+    }
+
+    protected function applyKycApproved(KycApproved $event): void
+    {
+        $this->status = KycStatus::Approved;
+    }
+
+    protected function applyKycRejected(KycRejected $event): void
+    {
+        $this->failureReasons = $event->failureReasons;
+        $this->status = KycStatus::Rejected;
+    }
+
+    protected function applyManualReviewRequested(ManualReviewRequested $event): void
+    {
+        $this->status = KycStatus::UnderManualReview;
+    }
+
+    protected function applyManualReviewDecisionRecorded(ManualReviewDecisionRecorded $event): void
+    {
+        $this->status = match ($event->decision) {
+            'approved' => KycStatus::Approved,
+            'rejected' => KycStatus::Rejected,
+            default => throw new \LogicException(\sprintf('Unknown manual review decision "%s".', $event->decision)),
+        };
+    }
+
+    protected function applyDocumentPurged(DocumentPurged $event): void
+    {
+        $this->documentPurged = true;
+        $this->storagePath = null;
+    }
+
     // ──────────────────────────────────────────────────────────────────────────
     // Accesseurs (lecture seule)
     // ──────────────────────────────────────────────────────────────────────────
@@ -142,5 +231,61 @@ final class KycRequest extends AggregateRoot
     public function getStatus(): KycStatus
     {
         return $this->status;
+    }
+
+    public function getStoragePath(): ?string
+    {
+        return $this->storagePath;
+    }
+
+    public function getMimeType(): ?string
+    {
+        return $this->mimeType;
+    }
+
+    public function getSha256Hash(): ?string
+    {
+        return $this->sha256Hash;
+    }
+
+    public function isDocumentPurged(): bool
+    {
+        return $this->documentPurged;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function getBirthDate(): ?string
+    {
+        return $this->birthDate;
+    }
+
+    public function getExpiryDate(): ?string
+    {
+        return $this->expiryDate;
+    }
+
+    public function getDocumentId(): ?string
+    {
+        return $this->documentId;
+    }
+
+    public function getMrz(): ?string
+    {
+        return $this->mrz;
+    }
+
+    /** @return FailureReason[] */
+    public function getFailureReasons(): array
+    {
+        return $this->failureReasons;
     }
 }
