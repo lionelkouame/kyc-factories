@@ -55,6 +55,17 @@ abstract class AggregateRoot
         return $events;
     }
 
+    /**
+     * Retourne les événements enregistrés sans les vider.
+     * Utile pour capturer les événements avant que save() ne les libère.
+     *
+     * @return DomainEvent[]
+     */
+    public function peekEvents(): array
+    {
+        return $this->recordedEvents;
+    }
+
     public function getVersion(): int
     {
         return $this->version;

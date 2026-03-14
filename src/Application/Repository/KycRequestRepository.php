@@ -8,7 +8,7 @@ use App\Domain\KycRequest\Aggregate\KycRequest;
 use App\Domain\KycRequest\Port\EventStorePort;
 use App\Domain\KycRequest\ValueObject\KycRequestId;
 
-final class KycRequestRepository
+final class KycRequestRepository implements KycRequestRepositoryPort
 {
     public function __construct(
         private readonly EventStorePort $eventStore,

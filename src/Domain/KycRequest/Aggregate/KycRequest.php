@@ -17,9 +17,11 @@ use App\Domain\KycRequest\Event\OcrExtractionFailed;
 use App\Domain\KycRequest\Event\OcrExtractionSucceeded;
 use App\Domain\KycRequest\Exception\InvalidTransitionException;
 use App\Domain\KycRequest\ValueObject\ApplicantId;
+use App\Domain\KycRequest\ValueObject\BlurVarianceScore;
 use App\Domain\KycRequest\ValueObject\DocumentType;
 use App\Domain\KycRequest\ValueObject\FailureReason;
 use App\Domain\KycRequest\ValueObject\KycRequestId;
+use App\Domain\KycRequest\ValueObject\OcrConfidenceScore;
 
 /**
  * Agrégat racine du domaine KYC.
@@ -85,6 +87,89 @@ final class KycRequest extends AggregateRoot
         self::reconstituteFromHistory($request, ...$events);
 
         return $request;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Commandes métier (transitions d'état)
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public function uploadDocument(
+        string $storagePath,
+        string $mimeType,
+        int $sizeBytes,
+        float $dpi,
+        BlurVarianceScore $blurVariance,
+        string $sha256Hash,
+    ): void {
+        $this->assertCanUploadDocument();
+        $this->record(new DocumentUploaded($this->id, $storagePath, $mimeType, $sizeBytes, $dpi, $blurVariance, $sha256Hash));
+    }
+
+    public function rejectDocumentOnUpload(FailureReason $reason): void
+    {
+        $this->assertCanUploadDocument();
+        $this->record(new DocumentRejectedOnUpload($this->id, $reason));
+    }
+
+    public function recordOcrSuccess(
+        ?string $lastName,
+        ?string $firstName,
+        ?string $birthDate,
+        ?string $expiryDate,
+        ?string $documentId,
+        ?string $mrz,
+        OcrConfidenceScore $confidenceScore,
+    ): void {
+        $this->assertCanRunOcr();
+        $this->record(new OcrExtractionSucceeded($this->id, $lastName, $firstName, $birthDate, $expiryDate, $documentId, $mrz, $confidenceScore));
+    }
+
+    public function recordOcrFailure(FailureReason $reason, ?float $confidenceScore = null): void
+    {
+        $this->assertCanRunOcr();
+        $this->record(new OcrExtractionFailed($this->id, $reason, $confidenceScore));
+    }
+
+    public function approve(): void
+    {
+        $this->assertCanValidate();
+        $this->record(new KycApproved($this->id));
+    }
+
+    /** @param FailureReason[] $reasons */
+    public function reject(array $reasons): void
+    {
+        $this->assertCanValidate();
+        $this->record(new KycRejected($this->id, $reasons));
+    }
+
+    public function requestManualReview(string $requestedBy, string $reason): void
+    {
+        $this->assertCanRequestManualReview();
+        $this->record(new ManualReviewRequested($this->id, $requestedBy, $reason));
+    }
+
+    public function recordManualReviewDecision(string $reviewerId, string $decision, string $justification): void
+    {
+        if (KycStatus::UnderManualReview !== $this->status) {
+            throw new InvalidTransitionException(\sprintf(
+                'Cannot record manual review decision: current status is "%s", expected "%s".',
+                $this->status->value,
+                KycStatus::UnderManualReview->value,
+            ));
+        }
+
+        if (!\in_array($decision, ['approved', 'rejected'], true)) {
+            throw new \InvalidArgumentException(\sprintf('Invalid manual review decision "%s". Must be "approved" or "rejected".', $decision));
+        }
+
+        $this->record(new ManualReviewDecisionRecorded($this->id, $reviewerId, $decision, $justification));
+
+        if ('approved' === $decision) {
+            $this->record(new KycApproved($this->id));
+        } else {
+            $this->record(new KycRejected($this->id, [new FailureReason('MANUAL_REVIEW_REJECTED', $justification)]));
+        }
     }
 
     // ──────────────────────────────────────────────────────────────────────────
