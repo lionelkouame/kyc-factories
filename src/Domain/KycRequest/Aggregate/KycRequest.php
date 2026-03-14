@@ -130,6 +130,23 @@ final class KycRequest extends AggregateRoot
         $this->record(new OcrExtractionFailed($this->id, $reason, $confidenceScore));
     }
 
+    /**
+     * Applique toutes les règles métier de validation et émet KycApproved ou KycRejected.
+     *
+     * Les violations bloquantes (UNDERAGE, EXPIRED) court-circuitent la collecte.
+     * Les violations non bloquantes sont toutes collectées avant rejet.
+     */
+    public function validate(\DateTimeImmutable $today): void
+    {
+        $reasons = $this->collectViolations($today);
+
+        if ([] === $reasons) {
+            $this->approve();
+        } else {
+            $this->reject($reasons);
+        }
+    }
+
     public function approve(): void
     {
         $this->assertCanValidate();
@@ -141,6 +158,85 @@ final class KycRequest extends AggregateRoot
     {
         $this->assertCanValidate();
         $this->record(new KycRejected($this->id, $reasons));
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Règles métier (domaine pur, zéro infrastructure)
+    // ──────────────────────────────────────────────────────────────────────────
+
+    /** @return FailureReason[] */
+    private function collectViolations(\DateTimeImmutable $today): array
+    {
+        $reasons = [];
+
+        // Bloquant : mineur
+        if (null === $this->birthDate) {
+            return [new FailureReason('E_VAL_UNDERAGE', 'La date de naissance est absente. Nous ne pouvons pas confirmer que vous avez au moins 18 ans.')];
+        }
+
+        $birthDate = \DateTimeImmutable::createFromFormat('Y-m-d', $this->birthDate);
+        if (false === $birthDate || $today->diff($birthDate)->y < 18) {
+            return [new FailureReason('E_VAL_UNDERAGE', 'Vous devez avoir au moins 18 ans pour effectuer cette vérification.')];
+        }
+
+        // Bloquant : document expiré
+        if (null === $this->expiryDate) {
+            return [new FailureReason('E_VAL_EXPIRED', 'La date d\'expiration est absente. Veuillez fournir un document en cours de validité.')];
+        }
+
+        $expiryDate = \DateTimeImmutable::createFromFormat('Y-m-d', $this->expiryDate);
+        if (false === $expiryDate || $expiryDate <= $today) {
+            return [new FailureReason('E_VAL_EXPIRED', \sprintf('Votre document est expiré depuis le %s. Veuillez fournir un document en cours de validité.', $this->expiryDate))];
+        }
+
+        // Non bloquant : nom de famille
+        if (!$this->isValidName($this->lastName)) {
+            $reasons[] = new FailureReason('E_VAL_NAME', 'Le nom de famille est invalide (2–50 caractères, lettres et tirets uniquement).');
+        }
+
+        // Non bloquant : prénom
+        if (!$this->isValidName($this->firstName)) {
+            $reasons[] = new FailureReason('E_VAL_NAME', 'Le prénom est invalide (2–50 caractères, lettres et tirets uniquement).');
+        }
+
+        // Non bloquant : numéro de document
+        if (null === $this->documentId || !preg_match('/^[A-Za-z0-9]{9,12}$/', $this->documentId)) {
+            $reasons[] = new FailureReason('E_VAL_DOC_ID', 'Le numéro de document est invalide (9–12 caractères alphanumériques).');
+        }
+
+        // Non bloquant : code MRZ
+        if (null === $this->mrz || !$this->isValidMrz($this->mrz)) {
+            $reasons[] = new FailureReason('E_VAL_MRZ', 'Le code MRZ est invalide (2 lignes de 30 ou 44 caractères).');
+        }
+
+        return $reasons;
+    }
+
+    private function isValidName(?string $name): bool
+    {
+        if (null === $name) {
+            return false;
+        }
+
+        return (bool) preg_match('/^[A-Za-zÀ-ÿ\-]{2,50}$/', $name);
+    }
+
+    private function isValidMrz(string $mrz): bool
+    {
+        $lines = explode("\n", trim($mrz));
+
+        if (2 !== \count($lines)) {
+            return false;
+        }
+
+        foreach ($lines as $line) {
+            $len = \strlen(trim($line));
+            if (30 !== $len && 44 !== $len) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function requestManualReview(string $requestedBy, string $reason): void
