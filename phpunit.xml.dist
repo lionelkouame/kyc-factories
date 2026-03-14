@@ -15,6 +15,7 @@
         <testsuite name="Contract">
             <directory>tests/Contract</directory>
             <exclude>tests/Contract/EventStore/EventStoreContractTest.php</exclude>
+            <exclude>tests/Contract/DocumentStorage/DocumentStorageContractTest.php</exclude>
         </testsuite>
     </testsuites>
 

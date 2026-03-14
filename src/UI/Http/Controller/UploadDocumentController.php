@@ -1,0 +1,94 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\UI\Http\Controller;
+
+use App\Application\Command\UploadDocument;
+use App\Application\Handler\UploadDocumentHandler;
+use App\Domain\KycRequest\Exception\KycDomainException;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+
+/**
+ * Accepte un fichier encodé en base64 dans le corps JSON.
+ *
+ * Body attendu :
+ * {
+ *   "fileContent": "<base64>",
+ *   "mimeType": "image/jpeg",
+ *   "sizeBytes": 512000,
+ *   "dpi": 300.0,
+ *   "blurVariance": 150.0,
+ *   "sha256Hash": "<hex>"
+ * }
+ */
+#[Route('/api/kyc/{id}/document', methods: ['POST'])]
+final class UploadDocumentController
+{
+    public function __construct(
+        private readonly UploadDocumentHandler $handler,
+    ) {
+    }
+
+    public function __invoke(Request $request, string $id): JsonResponse
+    {
+        /** @var array<string, mixed> $body */
+        $body = json_decode((string) $request->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+
+        $fileContentB64 = $this->str($body, 'fileContent');
+        $fileContent    = base64_decode($fileContentB64, true);
+
+        if ($fileContent === false) {
+            return new JsonResponse(['error' => 'fileContent must be a valid base64 string.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $this->handler->handle(new UploadDocument(
+                kycRequestId: $id,
+                fileContent: $fileContent,
+                mimeType: $this->str($body, 'mimeType'),
+                sizeBytes: $this->int($body, 'sizeBytes'),
+                dpi: $this->float($body, 'dpi'),
+                blurVariance: $this->float($body, 'blurVariance'),
+                sha256Hash: $this->str($body, 'sha256Hash'),
+            ));
+        } catch (KycDomainException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
+
+    private function str(mixed $body, string $key): string
+    {
+        if (!\is_array($body)) {
+            return '';
+        }
+        $v = $body[$key] ?? null;
+
+        return \is_string($v) ? $v : '';
+    }
+
+    private function int(mixed $body, string $key): int
+    {
+        if (!\is_array($body)) {
+            return 0;
+        }
+        $v = $body[$key] ?? null;
+
+        return \is_numeric($v) ? (int) $v : 0;
+    }
+
+    private function float(mixed $body, string $key): float
+    {
+        if (!\is_array($body)) {
+            return 0.0;
+        }
+        $v = $body[$key] ?? null;
+
+        return \is_numeric($v) ? (float) $v : 0.0;
+    }
+}
