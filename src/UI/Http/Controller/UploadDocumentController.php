@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\UI\Http\Controller;
 
 use App\Application\Command\UploadDocument;
-use App\Application\Handler\UploadDocumentHandler;
+use App\Application\Port\CommandBusPort;
 use App\Domain\KycRequest\Exception\KycDomainException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,7 +29,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class UploadDocumentController
 {
     public function __construct(
-        private readonly UploadDocumentHandler $handler,
+        private readonly CommandBusPort $bus,
     ) {
     }
 
@@ -46,7 +46,7 @@ final class UploadDocumentController
         }
 
         try {
-            $this->handler->handle(new UploadDocument(
+            $this->bus->dispatch(new UploadDocument(
                 kycRequestId: $id,
                 fileContent: $fileContent,
                 mimeType: $this->str($body, 'mimeType'),

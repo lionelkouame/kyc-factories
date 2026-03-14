@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Handler;
 
+use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use App\Application\Command\ExtractOcr;
 use App\Application\Repository\KycRequestRepositoryPort;
 use App\Domain\KycRequest\Port\DocumentStoragePort;
@@ -26,6 +27,7 @@ final class ExtractOcrHandler
     ) {
     }
 
+    #[AsMessageHandler]
     public function handle(ExtractOcr $command): void
     {
         $id = KycRequestId::fromString($command->kycRequestId);

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\UI\Http\Controller;
 
 use App\Application\Command\ExtractOcr;
-use App\Application\Handler\ExtractOcrHandler;
+use App\Application\Port\CommandBusPort;
 use App\Domain\KycRequest\Exception\KycDomainException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,14 +16,14 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ExtractOcrController
 {
     public function __construct(
-        private readonly ExtractOcrHandler $handler,
+        private readonly CommandBusPort $bus,
     ) {
     }
 
     public function __invoke(Request $request, string $id): JsonResponse
     {
         try {
-            $this->handler->handle(new ExtractOcr($id));
+            $this->bus->dispatch(new ExtractOcr($id));
         } catch (KycDomainException $e) {
             return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }

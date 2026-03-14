@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\UI\Http\Controller;
 
 use App\Application\Command\SubmitKycRequest;
-use App\Application\Handler\SubmitKycRequestHandler;
+use App\Application\Port\CommandBusPort;
 use App\Domain\KycRequest\Exception\KycDomainException;
 use App\Domain\KycRequest\ValueObject\KycRequestId;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,7 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class SubmitKycRequestController
 {
     public function __construct(
-        private readonly SubmitKycRequestHandler $handler,
+        private readonly CommandBusPort $bus,
     ) {
     }
 
@@ -31,7 +31,7 @@ final class SubmitKycRequestController
         $documentType = $this->str($body, 'documentType');
 
         try {
-            $this->handler->handle(new SubmitKycRequest($kycRequestId, $applicantId, $documentType));
+            $this->bus->dispatch(new SubmitKycRequest($kycRequestId, $applicantId, $documentType));
         } catch (KycDomainException $e) {
             return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }

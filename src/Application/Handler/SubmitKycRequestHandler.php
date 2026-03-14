@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Handler;
 
+use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use App\Application\Command\SubmitKycRequest;
 use App\Application\Repository\KycRequestRepositoryPort;
 use App\Domain\KycRequest\Aggregate\KycRequest;
@@ -20,6 +21,7 @@ final class SubmitKycRequestHandler
     ) {
     }
 
+    #[AsMessageHandler]
     public function handle(SubmitKycRequest $command): void
     {
         $id = KycRequestId::fromString($command->kycRequestId);
