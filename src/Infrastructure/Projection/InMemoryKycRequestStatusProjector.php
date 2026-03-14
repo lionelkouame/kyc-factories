@@ -70,6 +70,18 @@ final class InMemoryKycRequestStatusProjector implements KycRequestStatusProject
         return array_values($this->store);
     }
 
+    /** @return KycRequestStatusView[] */
+    public function findTerminalOlderThan(\DateTimeImmutable $before): array
+    {
+        $terminals = ['approved', 'rejected'];
+
+        return array_values(array_filter(
+            $this->store,
+            static fn (KycRequestStatusView $v) => \in_array($v->status, $terminals, true)
+                && $v->updatedAt < $before,
+        ));
+    }
+
     private function update(string $aggregateId, string $status, \DateTimeImmutable $updatedAt): void
     {
         $existing = $this->store[$aggregateId] ?? null;

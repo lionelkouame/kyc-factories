@@ -24,4 +24,14 @@ interface KycRequestStatusProjectorPort extends ProjectorPort
      * @return KycRequestStatusView[]
      */
     public function findAll(): array;
+
+    /**
+     * Retourne les demandes en état terminal (approved / rejected)
+     * dont la décision date d'avant le seuil donné.
+     *
+     * Utilisé par la commande de purge RGPD.
+     *
+     * @return KycRequestStatusView[]
+     */
+    public function findTerminalOlderThan(\DateTimeImmutable $before): array;
 }

@@ -288,4 +288,66 @@ final class KycRequestTest extends TestCase
         $request = KycRequest::submit($this->id, $this->applicantId, DocumentType::Cni);
         $request->validate(new \DateTimeImmutable('today'));
     }
+
+    // ── purgeDocument() ───────────────────────────────────────────────────────
+
+    public function testPurgeDocumentOnApprovedRequestRaisesDocumentPurgedEvent(): void
+    {
+        $request = $this->buildOcrCompletedRequest();
+        $request->validate(new \DateTimeImmutable('today'));
+        $request->releaseEvents(); // flush
+
+        $request->purgeDocument();
+
+        $events = $request->releaseEvents();
+        self::assertCount(1, $events);
+        self::assertInstanceOf(\App\Domain\KycRequest\Event\DocumentPurged::class, $events[0]);
+    }
+
+    public function testPurgeDocumentOnRejectedRequestRaisesDocumentPurgedEvent(): void
+    {
+        $request = $this->buildOcrCompletedRequest(birthDate: (new \DateTimeImmutable('-16 years'))->format('Y-m-d'));
+        $request->validate(new \DateTimeImmutable('today'));
+        $request->releaseEvents();
+
+        $request->purgeDocument();
+
+        $events = $request->releaseEvents();
+        self::assertCount(1, $events);
+        self::assertInstanceOf(\App\Domain\KycRequest\Event\DocumentPurged::class, $events[0]);
+    }
+
+    public function testPurgeDocumentSetsIsDocumentPurgedTrue(): void
+    {
+        $request = $this->buildOcrCompletedRequest();
+        $request->validate(new \DateTimeImmutable('today'));
+        $request->releaseEvents();
+
+        $request->purgeDocument();
+
+        self::assertTrue($request->isDocumentPurged());
+        self::assertNull($request->getStoragePath());
+    }
+
+    public function testPurgeDocumentOnNonTerminalStatusThrowsInvalidTransitionException(): void
+    {
+        $this->expectException(InvalidTransitionException::class);
+
+        $request = $this->buildOcrCompletedRequest();
+        // ocr_completed is not terminal
+        $request->purgeDocument();
+    }
+
+    public function testPurgeDocumentTwiceThrowsInvalidTransitionException(): void
+    {
+        $this->expectException(InvalidTransitionException::class);
+
+        $request = $this->buildOcrCompletedRequest();
+        $request->validate(new \DateTimeImmutable('today'));
+        $request->releaseEvents();
+
+        $request->purgeDocument();
+        $request->releaseEvents();
+        $request->purgeDocument(); // second call must throw
+    }
 }
