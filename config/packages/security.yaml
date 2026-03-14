@@ -1,39 +1,46 @@
 security:
-    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
-    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        users_in_memory:
+            memory:
+                users:
+                    kyc_auditor:
+                        # Production: override KYC_AUDITOR_PASSWORD_HASH with a proper bcrypt hash.
+                        password: '%env(default:KYC_AUDITOR_PASSWORD_HASH_DEFAULT:KYC_AUDITOR_PASSWORD_HASH)%'
+                        roles: ['ROLE_KYC_AUDITOR']
 
     firewalls:
         dev:
-            # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
         main:
             lazy: true
+            stateless: true
             provider: users_in_memory
+            http_basic: ~
 
-            # Activate different ways to authenticate:
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
-
-    # Note: Only the *first* matching rule is applied
+    # Only the first matching rule applies
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/api/kyc/.+/document$, roles: ROLE_KYC_AUDITOR }
 
 when@test:
     security:
         password_hashers:
-            # Password hashers are resource-intensive by design to ensure security.
-            # In tests, it's safe to reduce their cost to improve performance.
             Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
                 algorithm: auto
-                cost: 4 # Lowest possible value for bcrypt
-                time_cost: 3 # Lowest possible value for argon
-                memory_cost: 10 # Lowest possible value for argon
+                cost: 4
+                time_cost: 3
+                memory_cost: 10
+        providers:
+            users_in_memory:
+                memory:
+                    users:
+                        kyc_auditor:
+                            # bcrypt("password", cost=4) — for tests only
+                            password: '$2y$04$usesomesillystringfore2uDLvp1Ii2e./U9C8sBjqp8I90dH6hi'
+                            roles: ['ROLE_KYC_AUDITOR']
+                        basic_user:
+                            password: '$2y$04$usesomesillystringfore2uDLvp1Ii2e./U9C8sBjqp8I90dH6hi'
+                            roles: ['ROLE_USER']
