@@ -1,0 +1,32 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: 'KYC Factories API'
+            description: |
+                API KYC (Know Your Customer) — Pipeline complet : soumission, upload, OCR, validation métier, révision manuelle, projections et conformité RGPD.
+
+                ## Authentification
+                Les endpoints de lecture de fichiers (`GET /api/kyc/{id}/document`) requièrent le rôle `ROLE_KYC_AUDITOR` via HTTP Basic Auth.
+
+                ## Codes d'erreur métier
+                | Code | Description |
+                |------|-------------|
+                | `E_VAL_UNDERAGE` | Demandeur mineur |
+                | `E_VAL_EXPIRED` | Document expiré |
+                | `E_VAL_NAME` | Nom / prénom invalide |
+                | `E_VAL_DOC_ID` | Identifiant de document invalide |
+                | `E_VAL_MRZ` | Code MRZ invalide |
+            version: '1.0.0'
+        components:
+            securitySchemes:
+                basicAuth:
+                    type: http
+                    scheme: basic
+
+    areas:
+        default:
+            path_patterns:
+                - ^/api
+
+    models:
+        use_jms: false

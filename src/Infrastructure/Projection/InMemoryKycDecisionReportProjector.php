@@ -67,7 +67,7 @@ final class InMemoryKycDecisionReportProjector implements KycDecisionReportProje
         }
 
         $decided     = $approvedCount + $rejectedCount;
-        $approvalRate = $decided > 0 ? round($approvedCount / $decided * 100, 2) : 0.0;
+        $approvalRate = $decided > 0 ? round($approvedCount / $decided, 4) : 0.0;
 
         return new KycDecisionReportView(
             dateFrom:        $dateFrom->format('Y-m-d'),

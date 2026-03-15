@@ -33,6 +33,8 @@ final class ExtractOcrHandler
         $id = KycRequestId::fromString($command->kycRequestId);
         $kycRequest = $this->repository->get($id);
 
+        $kycRequest->assertCanRunOcr();
+
         $fileContent = $this->storage->retrieve($kycRequest->getStoragePath() ?? '');
 
         try {

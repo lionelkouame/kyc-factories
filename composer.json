@@ -10,6 +10,8 @@
         "doctrine/doctrine-bundle": "^3.2",
         "doctrine/doctrine-migrations-bundle": "^4.0",
         "doctrine/orm": "^3.6",
+        "nelmio/api-doc-bundle": "^5.9",
+        "symfony/asset": "8.0.*",
         "symfony/console": "8.0.*",
         "symfony/dotenv": "8.0.*",
         "symfony/flex": "^2",
@@ -17,6 +19,7 @@
         "symfony/messenger": "8.0.*",
         "symfony/runtime": "8.0.*",
         "symfony/security-bundle": "8.0.*",
+        "symfony/twig-bundle": "8.0.*",
         "symfony/uid": "8.0.*",
         "symfony/yaml": "8.0.*",
         "thiagoalessio/tesseract_ocr": "^2.13"
@@ -81,6 +84,7 @@
         "phpstan/phpstan-doctrine": "*",
         "phpstan/phpstan-symfony": "*",
         "phpunit/phpunit": "*",
+        "symfony/browser-kit": "8.0.*",
         "symfony/phpunit-bridge": "*"
     }
 }

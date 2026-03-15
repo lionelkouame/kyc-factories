@@ -46,3 +46,13 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+when@test:
+    services:
+        # En environnement de test, remplacer le publisher par une implémentation
+        # qui propage les événements à tous les projecteurs in-memory.
+        # Cela permet de tester les endpoints de lecture sans rejeu manuel.
+        App\Domain\KycRequest\Port\DomainEventPublisherPort:
+            class: App\Infrastructure\Messaging\ProjectionForwardingEventPublisher
+            autowire: true
+

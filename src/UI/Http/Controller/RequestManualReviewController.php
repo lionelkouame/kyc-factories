@@ -7,10 +7,32 @@ namespace App\UI\Http\Controller;
 use App\Application\Command\RequestManualReview;
 use App\Application\Port\CommandBusPort;
 use App\Domain\KycRequest\Exception\KycDomainException;
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+
+#[OA\Tag(name: 'Révision manuelle')]
+#[OA\Post(
+    path: '/api/kyc/{id}/manual-review',
+    summary: 'Déclencher une révision manuelle par un Compliance Officer',
+    parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, description: 'UUID de la demande KYC', schema: new OA\Schema(type: 'string', format: 'uuid'))],
+    requestBody: new OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['requestedBy', 'reason'],
+            properties: [
+                new OA\Property(property: 'requestedBy', type: 'string', example: 'officer-42'),
+                new OA\Property(property: 'reason', type: 'string', example: 'Document peu lisible'),
+            ],
+        ),
+    ),
+    responses: [
+        new OA\Response(response: 204, description: 'Révision manuelle déclenchée'),
+        new OA\Response(response: 422, description: 'Erreur métier'),
+    ],
+)]
 
 #[Route('/api/kyc/{id}/manual-review', methods: ['POST'])]
 final class RequestManualReviewController
