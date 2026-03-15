@@ -23,7 +23,7 @@ security:
 
     # Only the first matching rule applies
     access_control:
-        - { path: ^/api/kyc/.+/document$, roles: ROLE_KYC_AUDITOR }
+        - { path: ^/api/kyc/.+/document$, roles: ROLE_KYC_AUDITOR, methods: [GET] }
 
 when@test:
     security:

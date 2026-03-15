@@ -60,6 +60,8 @@ final class SubmitKycRequestController
             $this->bus->dispatch(new SubmitKycRequest($kycRequestId, $applicantId, $documentType));
         } catch (KycDomainException $e) {
             return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\ValueError $e) {
+            return new JsonResponse(['error' => sprintf('Invalid documentType value: "%s".', $documentType)], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         return new JsonResponse(

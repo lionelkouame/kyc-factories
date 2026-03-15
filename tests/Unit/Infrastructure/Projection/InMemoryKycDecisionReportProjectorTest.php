@@ -23,7 +23,7 @@ use PHPUnit\Framework\TestCase;
  * Critères d'acceptance US-12 :
  *  - Comptage approuvés/rejetés dans la période
  *  - En cours = soumis dans la période, pas encore décidés
- *  - Taux d'approbation = approuvés / (approuvés + rejetés) × 100
+ *  - Taux d'approbation = approuvés / (approuvés + rejetés), entre 0.0 et 1.0
  *  - 0.0 si aucune décision
  */
 final class InMemoryKycDecisionReportProjectorTest extends TestCase
@@ -101,7 +101,7 @@ final class InMemoryKycDecisionReportProjectorTest extends TestCase
 
         self::assertSame(2, $report->approvedCount);
         self::assertSame(0, $report->rejectedCount);
-        self::assertSame(100.0, $report->approvalRate);
+        self::assertSame(1.0, $report->approvalRate);
     }
 
     public function testCountsRejectedRequestsInPeriod(): void
@@ -134,10 +134,10 @@ final class InMemoryKycDecisionReportProjectorTest extends TestCase
             new \DateTimeImmutable('2024-06-30'),
         );
 
-        // 2 / 3 * 100 = 66.67
+        // 2 / 3 ≈ 0.6667 (ratio 0.0–1.0)
         self::assertSame(2, $report->approvedCount);
         self::assertSame(1, $report->rejectedCount);
-        self::assertEqualsWithDelta(66.67, $report->approvalRate, 0.01);
+        self::assertEqualsWithDelta(2 / 3, $report->approvalRate, 0.001);
     }
 
     public function testInProgressCountsSubmittedButNotDecided(): void
